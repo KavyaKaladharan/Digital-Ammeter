@@ -1,0 +1,144 @@
+/*========================================= 
+8-BIT LCD DRIVER FOR PIC16F73 CCSC 
+==========================================*/ 
+/////////////////////////////////////////////////////////////////// 
+// LCD 16x2 
+// 
+////////////////////////////////////////////////////////////////// 
+
+#include<16f877a.h>
+#device ADC=10
+#include <stdlib.h>
+#use delay(clock=20000000)
+#fuses HS,NOWDT,PROTECT
+#zero_ram
+
+#use rs232(baud=9600,xmit=PIN_B7,rcv=PIN_B5)
+
+
+#define PORT_D                  3 
+
+#define NCHAR_PER_LINE          16              // max char numbers per line 
+#define LCD_RS                  PIN_B4 
+#define LCD_E                   PIN_B2 
+#define LCD_DAT                 PORT_D 
+
+///////////////////////////////////////////////// output() 
+//lcd data bus output 
+void output(int8 port, int8 dat) 
+{ 
+                output_D(dat);      
+}//end output() 
+
+//////////////////////////////////////////////// lcd_write_cmd() 
+// 
+void lcd_write_cmd(int8 cmd) 
+{ 
+         delay_us(400); 
+        output_low(LCD_RS); 
+        output(LCD_DAT, cmd); 
+
+        output_high(LCD_E); 
+        delay_us(400); 
+        output_low(LCD_E); 
+   ////getc();   
+}//end lcd_write_cmd() 
+
+/////////////////////////////////////////////// lcd_write_dat() 
+// 
+void lcd_write_dat(int8 dat) 
+{ 
+         delay_us(400); 
+        output_high(LCD_RS); 
+        output(LCD_DAT, dat); 
+
+        output_high(LCD_E); 
+        delay_us(400); 
+        output_low(LCD_E); 
+  
+}//end lcd_write_dat() 
+
+//////////////////////////////////////////// lcd_init() 
+// 
+void lcd_init(void) 
+{ 
+        output_low(LCD_E);              // Let LCD E line low 
+
+        lcd_write_cmd(0x38);            // LCD 16x2, 5x7, 8bits data 
+        delay_ms(15); 
+        lcd_write_cmd(0x01);            // Clear LCD display 
+        delay_ms(10); 
+        lcd_write_cmd(0x0f);            // Open display & current 
+        delay_ms(10); 
+        lcd_write_cmd(0x06);            // Window fixed 
+        delay_ms(10); 
+}//end lcd_init() 
+
+
+///////////////////////////////////////// lcd_display_char() 
+// 
+void lcd_display_char(int8 line, int8 pos, int8 ch) 
+{ 
+        int8 tmp; 
+        line = (line==0) ? 0 : 1; 
+        pos  = (pos >NCHAR_PER_LINE) ? NCHAR_PER_LINE : pos; 
+
+        tmp = 0x80 + 0x40*line + pos; 
+   //printf("tmp=%xReady?\n\r",tmp);
+   //printf("ch=%xReady?\n\r",ch);
+
+   ////getc();
+        lcd_write_cmd(tmp); 
+        lcd_write_dat(ch); 
+   //delay_ms(40); //delay removed
+}//end lcd_display_char() 
+
+/////////////////////////////////////////// lcd_display_str() 
+// 
+void lcd_display_str(int8 line, char str[]) 
+{ 
+     int8 i; 
+
+        for(i=0; i<NCHAR_PER_LINE; i++) 
+            { 
+                lcd_display_char(line, i, ' '); 
+                } 
+        for(i=0; i<NCHAR_PER_LINE; i++) 
+                { 
+                if(str[i] == '\0') break; 
+                lcd_display_char(line, i, str[i]); 
+                } 
+   delay_ms(500);
+}//end lcd_display_str() 
+
+
+/*=======================================*/
+void main(void) 
+{ 
+   setup_adc(ADC_CLOCK_INTERNAL);
+   setup_adc_ports(ALL_ANALOG);
+   set_adc_channel(0);
+   while(1)
+   {
+      int8 i;
+      int num;
+      char string1[5]="mA";
+      char string[10];
+      char string2[16]= "DIGITAL AMMETER";
+      int32 x;
+      x = x/4;
+      x= read_adc();
+      itoa(x,10,string);
+      
+      strcat(string,string1);
+
+        
+     lcd_display_str(0, string2);
+     lcd_display_str(1, string);
+  
+     
+     
+     }
+        
+      
+}//end main() 
