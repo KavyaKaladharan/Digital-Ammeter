@@ -16,7 +16,7 @@ v.	Software: PCW.exe
 vi.	Debugger: MPLAB ICE2
 
 Project Layout:
-
+Refere 'Digital Ammeter Report' file
 
 
 Steps to Follow:
@@ -27,7 +27,7 @@ iv.	Microcontroller will compute current with the help of known load resistance 
 v.	Display the value on LCD.
 
 Diagram:
-
+Refere 'Digital Ammeter Report' file
 
 Calculations:
 Vout = Vin(1+ R2/R1)
